@@ -1,0 +1,7 @@
+# Linky menu items definition
+entity.linky.collection:
+  title: 'Managed links'
+  route_name: entity.linky.collection
+  description: 'View managed link entities'
+  parent: system.admin_content
+  weight: 100
