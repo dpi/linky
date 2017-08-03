@@ -37,10 +37,6 @@ class LinkyEntityAutocomplete extends EntityAutocomplete {
     else {
       // We build a new link entity using the provided URL and linky title.
       $value = NULL;
-      $element_parents = $element['#parents'];
-      // Remove the field name.
-      array_pop($element_parents);
-      $values = $form_state->getValue($element_parents);
       if (!empty($element['#value'])) {
         $options = array(
           'target_type' => $element['#target_type'],
@@ -90,7 +86,11 @@ class LinkyEntityAutocomplete extends EntityAutocomplete {
                 // Remove the invisible class from this element.
                 $array_parents = $element['#array_parents'];
                 array_pop($array_parents);
-                $class_parents = array_merge($array_parents, ['linky', '#attributes', 'class']);
+                $class_parents = array_merge($array_parents, [
+                  'linky',
+                  '#attributes',
+                  'class',
+                ]);
                 $classes = NestedArray::getValue($complete_form, $class_parents);
                 if ($key = array_search('invisible', $classes)) {
                   unset($classes[$key]);
@@ -103,7 +103,7 @@ class LinkyEntityAutocomplete extends EntityAutocomplete {
               try {
                 $url = Url::fromUri($input['uri']);
               }
-                // If the URL is malformed this constraint cannot check further.
+              // If the URL is malformed this constraint cannot check further.
               catch (\InvalidArgumentException $e) {
                 $valid_url = FALSE;
               }
