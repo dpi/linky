@@ -63,6 +63,7 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     'dynamic_entity_reference',
     'field_ui',
     'entity_test',
+    'views',
   ];
 
   /**
@@ -76,6 +77,9 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     'administer entity_test fields',
     'administer entity_test form display',
     'administer entity_test content',
+    'add linky entities',
+    'edit linky entities',
+    'view linky entities',
   ];
 
   /**
@@ -116,6 +120,8 @@ class LinkyFunctionalTest extends JavascriptTestBase {
    */
   public function testLinkyWidget() {
     $assert_session = $this->assertSession();
+    $page = $this->getSession()->getPage();
+
     // Add EntityTestBundle for EntityTestWithBundle.
     EntityTestBundle::create([
       'id' => 'test',
@@ -123,6 +129,7 @@ class LinkyFunctionalTest extends JavascriptTestBase {
       'description' => 'My test description',
     ])->save();
     $this->drupalLogin($this->adminUser);
+
     // Add a new dynamic entity reference field.
     $this->drupalGet('entity_test/structure/entity_test/fields/add-field');
     $edit = [
@@ -131,7 +138,6 @@ class LinkyFunctionalTest extends JavascriptTestBase {
       'new_storage_type' => 'dynamic_entity_reference',
     ];
     $this->submitForm($edit, t('Save and continue'), 'field-ui-field-storage-add-form');
-    $page = $this->getSession()->getPage();
     $entity_type_ids_select = $assert_session->selectExists('settings[entity_type_ids][]', $page);
     $entity_type_ids_select->selectOption('linky');
     $entity_type_ids_select->selectOption('entity_test', TRUE);
@@ -139,7 +145,6 @@ class LinkyFunctionalTest extends JavascriptTestBase {
       ->selectOption(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED);
     $page->uncheckField('settings[exclude_entity_types]');
     $this->submitForm([], t('Save field settings'), 'field-storage-config-edit-form');
-    $page = $this->getSession()->getPage();
     $page->checkField('settings[entity_test][handler_settings][target_bundles][entity_test]');
     $this->assertJsCondition('(typeof(jQuery)=="undefined" || (0 === jQuery.active && 0 === jQuery(\':animated\').length))', 20000);
     $page->checkField('settings[linky][handler_settings][auto_create]');
@@ -153,6 +158,8 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     $page->findButton('Save')->click();
     $this->htmlOutput($page->getContent());
     \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
+
+    // Test adding field values.
     $this->drupalGet('entity_test/add');
     // We add another item first.
     $button = $page->findButton('Add another item');
@@ -164,6 +171,7 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     // Wait for AJAX.
     $this->assertJsCondition('(typeof(jQuery)=="undefined" || (0 === jQuery.active && 0 === jQuery(\':animated\').length))', 20000);
     $this->htmlOutput($page->getContent());
+
     // On the first field, we change it to a linky entity type.
     $target_type_select = $assert_session->selectExists('field_linky[0][target_type]');
     $target_type_select->selectOption('entity_test');
@@ -172,6 +180,7 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     $target_type_select->selectOption('linky');
     // Now we've selected linky as target, field should be visible.
     $this->assertJsCondition("jQuery('.linky__title:not(\".invisible\") input[name=\"field_linky[0][linky][linky_title]\"]').length", 1000);
+
     $autocomplete_field = $page->findField('field_linky[0][target_id]');
     // Search on link title.
     $this->performAutocompleteQuery('This amazing site', $autocomplete_field);
@@ -187,6 +196,7 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     // Wait for dom.
     $this->assertJsCondition("jQuery('.linky__title.invisible input[name=\"field_linky[0][linky][linky_title]\"]').length", 1000);
     $this->assertEquals('This amazing site (http://example.com) (' . $this->links[0]->id() . ')', $autocomplete_field->getValue());
+
     // Now lets populate the second one with another entity.
     $target_type_select_1 = $assert_session->selectExists('field_linky[1][target_type]');
     $target_type_select_1->selectOption('entity_test');
@@ -201,11 +211,13 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     $linky_title_2 = $assert_session->fieldExists('field_linky[2][linky][linky_title]');
     $linky_title_2->setValue('Who likes ham');
     $this->screenshotOutput();
-    $page->findButton(t('Save'))->click();
+    $page->findButton('Save')->click();
     $this->screenshotOutput();
     preg_match('|entity_test/manage/(\d+)|', $this->getSession()->getCurrentUrl(), $match);
     $id = $match[1];
-    $assert_session->responseContains(t('entity_test @id has been created.', array('@id' => $id)));
+    $assert_session->elementTextContains('css', '.messages', sprintf('entity_test %s has been created.', $id));
+
+    // Check new entity was created and saved correctly.
     $test_entity = EntityTest::load($id);
     $link = $test_entity->field_linky->get(2)->entity;
     $this->assertEquals('http://exhample.com', $link->link->uri);
@@ -285,7 +297,7 @@ class LinkyFunctionalTest extends JavascriptTestBase {
    * Embed and create a screenshot.
    */
   protected function screenshotOutput() {
-    $filename = $this->createScreenshot();
+    $filename = $this->createScreenshot('');
     $this->htmlOutput('<html><title>Screenshot</title><body><img src="/sites/simpletest/browser_output/' . basename($filename) . '" /></body></html>');
   }
 
