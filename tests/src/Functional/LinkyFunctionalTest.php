@@ -147,7 +147,7 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     $page->uncheckField('settings[exclude_entity_types]');
     $this->submitForm([], t('Save field settings'), 'field-storage-config-edit-form');
     $page->checkField('settings[entity_test][handler_settings][target_bundles][entity_test]');
-    $this->assertJsCondition('(typeof(jQuery)=="undefined" || (0 === jQuery.active && 0 === jQuery(\':animated\').length))', 20000);
+    $assert_session->assertWaitOnAjaxRequest();
     $page->checkField('settings[linky][handler_settings][auto_create]');
     $this->submitForm([], t('Save settings'), 'field-config-edit-form');
     $assert_session->pageTextContains('Saved Linky list configuration');
@@ -155,7 +155,7 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     // We can't use ::submitForm here because of AJAX.
     $assert_session->fieldExists('fields[field_linky][type]')->selectOption('linky');
     // Wait for AJAX.
-    $this->assertJsCondition('(typeof(jQuery)=="undefined" || (0 === jQuery.active && 0 === jQuery(\':animated\').length))', 20000);
+    $assert_session->assertWaitOnAjaxRequest();
     $page->findButton('Save')->click();
     $this->htmlOutput($page->getContent());
     \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
@@ -166,11 +166,11 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     $button = $page->findButton('Add another item');
     $button->click();
     // Wait for AJAX.
-    $this->assertJsCondition('(typeof(jQuery)=="undefined" || (0 === jQuery.active && 0 === jQuery(\':animated\').length))', 20000);
+    $assert_session->assertWaitOnAjaxRequest();
     // Add a third option.
     $button->click();
     // Wait for AJAX.
-    $this->assertJsCondition('(typeof(jQuery)=="undefined" || (0 === jQuery.active && 0 === jQuery(\':animated\').length))', 20000);
+    $assert_session->assertWaitOnAjaxRequest();
     $this->htmlOutput($page->getContent());
 
     // On the first field, we change it to a linky entity type.
@@ -205,7 +205,8 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     $autocomplete_field_1->setValue($this->testEntity->label());
     $target_type_select_2 = $assert_session->selectExists('field_linky[2][target_type]');
     $target_type_select_2->selectOption('linky');
-    // We're going to use the autocreate function here.
+
+    // For the third, we're going to use the autocreate function here.
     $autocomplete_field_2 = $page->findField('field_linky[2][target_id]');
     $this->performAutocompleteQuery('http://exhample.com', $autocomplete_field_2);
     // We don't select from the list here. But add a new one, with a new title.
