@@ -32,7 +32,7 @@ class LinkyEntityAutocomplete extends EntityAutocomplete {
    */
   public static function validateEntityAutocomplete(array &$element, FormStateInterface $form_state, array &$complete_form) {
     if ($element['#target_type'] !== 'linky') {
-      return parent::validateEntityAutocomplete($element, $form_state, $complete_form);
+      parent::validateEntityAutocomplete($element, $form_state, $complete_form);
     }
     else {
       // We build a new link entity using the provided URL and linky title.
