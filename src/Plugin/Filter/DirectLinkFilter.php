@@ -76,7 +76,7 @@ class DirectLinkFilter extends FilterBase implements ContainerFactoryPluginInter
       $val = $element->getAttribute('href');
 
       if (preg_match('#/admin/content/linky/(?<entity_id>\d+)#', $val, $matches)) {
-        /**  @var \Drupal\linky\Entity\Linky $linky */
+        /** @var \Drupal\linky\Entity\Linky $linky */
         if ($linky = $this->linkyStorage->load($matches['entity_id'])) {
           $element->setAttribute('href', $linky->link->first()->getUrl()->toString());
         }

@@ -23,7 +23,7 @@ class LinkyEntityAutocomplete extends EntityAutocomplete {
     $info = parent::getInfo();
     $class = get_class($this);
     $info['#element_validate'] = [[$class, 'validateEntityAutocomplete']];
-
+    $info['#allow_duplicate_urls'] = TRUE;
     return $info;
   }
 
@@ -46,6 +46,7 @@ class LinkyEntityAutocomplete extends EntityAutocomplete {
         /** @var \Drupal\Core\Entity\EntityReferenceSelection\SelectionInterface $handler */
         $handler = \Drupal::service('plugin.manager.entity_reference_selection')->getInstance($options);
         $autocreate = (bool) $element['#autocreate'] && $handler instanceof SelectionWithAutocreateInterface;
+        $allow_duplicate_urls = (bool) $element['#allow_duplicate_urls'] && $handler instanceof SelectionWithAutocreateInterface;
 
         // GET forms might pass the validated data around on the next request,
         // in which case it will already be in the expected format.
@@ -57,7 +58,9 @@ class LinkyEntityAutocomplete extends EntityAutocomplete {
 
           foreach ($input_values as $input) {
             $match = static::extractEntityIdFromAutocompleteInput($input);
-            if ($match === NULL) {
+            // Only look for matches on the URI input if we aren't allowing
+            // duplicate urls.
+            if (!$allow_duplicate_urls && $match === NULL) {
               // Try to get a match from the input string when the user didn't
               // use the autocomplete but filled in a value manually.
               $match = static::matchEntityByTitle($handler, $input, $element, $form_state, !$autocreate);

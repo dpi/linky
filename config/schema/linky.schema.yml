@@ -3,3 +3,7 @@
 field.widget.settings.linky:
   type: field.widget.settings.dynamic_entity_reference_default
   label: 'Linky autocomplete widget display format settings'
+  mapping:
+    allow_duplicate_urls:
+      type: string
+      label: 'Allow duplicate urls'

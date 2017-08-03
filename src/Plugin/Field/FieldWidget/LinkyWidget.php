@@ -26,6 +26,45 @@ class LinkyWidget extends DynamicEntityReferenceWidget {
   /**
    * {@inheritdoc}
    */
+  public static function defaultSettings() {
+    return [
+      'allow_duplicate_urls' => TRUE,
+    ] + parent::defaultSettings();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function settingsForm(array $form, FormStateInterface $form_state) {
+    $element = parent::settingsForm($form, $form_state);
+    $element['allow_duplicate_urls'] = [
+      '#type' => 'checkbox',
+      '#title' => t('Allow duplicate urls'),
+      '#default_value' => $this->getSetting('allow_duplicate_urls'),
+      '#description' => t('Uncheck this if you do not want users to be able to create Managed link entities with the same url when using the "Create referenced entities if they don\'t already exist" field setting.'),
+    ];
+
+    return $element;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function settingsSummary() {
+    $summary = parent::settingsSummary();
+    if ($this->getSetting('allow_duplicate_urls')) {
+      $summary[] = t('Duplicate urls allowed');
+    }
+    else {
+      $summary[] = t('Duplicate urls not allowed');
+    }
+
+    return $summary;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, FormStateInterface $form_state) {
     $build = parent::formElement($items, $delta, $element, $form, $form_state);
     $settings = $this->getFieldSettings();
