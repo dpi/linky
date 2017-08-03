@@ -47,12 +47,12 @@ class LinkyEntityAutocomplete extends EntityAutocomplete {
           'handler' => $element['#selection_handler'],
           'handler_settings' => $element['#selection_settings'],
         );
-        /** @var /Drupal\Core\Entity\EntityReferenceSelection\SelectionInterface $handler */
+        /** @var \Drupal\Core\Entity\EntityReferenceSelection\SelectionInterface $handler */
         $handler = \Drupal::service('plugin.manager.entity_reference_selection')->getInstance($options);
         $autocreate = (bool) $element['#autocreate'] && $handler instanceof SelectionWithAutocreateInterface;
 
-        // GET forms might pass the validated data around on the next request, in
-        // which case it will already be in the expected format.
+        // GET forms might pass the validated data around on the next request,
+        // in which case it will already be in the expected format.
         if (is_array($element['#value'])) {
           $value = $element['#value'];
         }
@@ -62,8 +62,8 @@ class LinkyEntityAutocomplete extends EntityAutocomplete {
           foreach ($input_values as $input) {
             $match = static::extractEntityIdFromAutocompleteInput($input);
             if ($match === NULL) {
-              // Try to get a match from the input string when the user didn't use
-              // the autocomplete but filled in a value manually.
+              // Try to get a match from the input string when the user didn't
+              // use the autocomplete but filled in a value manually.
               $match = static::matchEntityByTitle($handler, $input, $element, $form_state, !$autocreate);
             }
 
