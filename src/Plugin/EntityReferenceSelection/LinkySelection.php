@@ -1,11 +1,6 @@
 <?php
-/**
- * @file
- * Contains Drupal\linky\Plugin\EntityReferenceSelection\LinkySelection.
- */
 
 namespace Drupal\linky\Plugin\EntityReferenceSelection;
-
 
 use Drupal\Core\Entity\Plugin\EntityReferenceSelection\DefaultSelection;
 

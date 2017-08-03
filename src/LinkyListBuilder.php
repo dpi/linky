@@ -14,6 +14,7 @@ use Drupal\Core\Url;
  */
 class LinkyListBuilder extends EntityListBuilder {
   use LinkGeneratorTrait;
+
   /**
    * {@inheritdoc}
    */

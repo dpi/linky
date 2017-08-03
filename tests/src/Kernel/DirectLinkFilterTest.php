@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\linky\Functional;
 
-
 use Drupal\filter\Entity\FilterFormat;
 use Drupal\linky\Entity\Linky;
 use Drupal\Tests\token\Kernel\KernelTestBase;
@@ -12,7 +11,7 @@ use Drupal\Tests\token\Kernel\KernelTestBase;
  *
  * @group linky
  */
-class DirectLinkFilterTest extends KernelTestBase  {
+class DirectLinkFilterTest extends KernelTestBase {
 
   /**
    * {@inheritdoc}

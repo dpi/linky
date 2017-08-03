@@ -9,6 +9,7 @@ use Drupal\views\EntityViewsDataInterface;
  * Provides Views data for Linky entities.
  */
 class LinkyViewsData extends EntityViewsData implements EntityViewsDataInterface {
+
   /**
    * {@inheritdoc}
    */

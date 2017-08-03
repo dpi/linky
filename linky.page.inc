@@ -8,8 +8,6 @@
  */
 
 use Drupal\Core\Render\Element;
-use Drupal\Core\Link;
-use Drupal\Core\Url;
 
 /**
  * Prepares variables for Linky templates.
@@ -22,9 +20,6 @@ use Drupal\Core\Url;
  *   - attributes: HTML attributes for the containing element.
  */
 function template_preprocess_linky(array &$variables) {
-  // Fetch Linky Entity Object.
-  $linky = $variables['elements']['#linky'];
-
   // Helpful $content variable for templates.
   foreach (Element::children($variables['elements']) as $key) {
     $variables['content'][$key] = $variables['elements'][$key];

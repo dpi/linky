@@ -18,6 +18,7 @@ class LinkyFunctionalTest extends JavascriptTestBase {
 
   /**
    * Screenshot counter.
+   *
    * @var int
    */
   protected $screenshotCounter = 0;

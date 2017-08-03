@@ -13,6 +13,7 @@ use Drupal\Core\Access\AccessResult;
  * @see \Drupal\linky\Entity\Linky.
  */
 class LinkyAccessControlHandler extends EntityAccessControlHandler {
+
   /**
    * {@inheritdoc}
    */

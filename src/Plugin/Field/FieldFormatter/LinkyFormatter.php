@@ -1,10 +1,9 @@
 <?php
 
 namespace Drupal\linky\Plugin\Field\FieldFormatter;
+
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Render\Element;
-use Drupal\Core\Url;
 use Drupal\dynamic_entity_reference\Plugin\Field\FieldFormatter\DynamicEntityReferenceLabelFormatter;
 
 /**

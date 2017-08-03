@@ -2,7 +2,6 @@
 
 namespace Drupal\linky\Plugin\Field\FieldWidget;
 
-
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Form\FormStateInterface;
