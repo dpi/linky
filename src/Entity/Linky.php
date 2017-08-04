@@ -7,6 +7,8 @@ use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Link;
+use Drupal\Core\Url;
 use Drupal\link\LinkItemInterface;
 use Drupal\linky\LinkyInterface;
 use Drupal\user\UserInterface;
@@ -214,6 +216,26 @@ class Linky extends ContentEntityBase implements LinkyInterface {
    */
   public function label() {
     return $this->link->title . ' (' . $this->link->uri . ')';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function toUrl($rel = 'canonical', array $options = []) {
+    if ($rel === 'canonical') {
+      return Url::fromUri($this->link->uri, $options);
+    }
+    return parent::toUrl($rel, $options);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function toLink($text = NULL, $rel = 'canonical', array $options = []) {
+    if (!isset($text)) {
+      return parent::toLink($this->link->title, $rel, $options);
+    }
+    return parent::toLink($text, $rel, $options);
   }
 
 }
