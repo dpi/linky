@@ -91,6 +91,8 @@ class LinkyWidget extends DynamicEntityReferenceWidget {
     if ($target_type === 'linky') {
       $build['target_id']['#attributes']['placeholder'] = $this->t('Link URL');
     }
+    $build['target_id']['#allow_duplicate_urls'] = $this->getSetting('allow_duplicate_urls');
+
     $build['linky'] = [
       '#type' => 'container',
       '#attributes' => ['class' => $classes],
