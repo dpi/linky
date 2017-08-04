@@ -203,10 +203,10 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     $target_type_select_1->selectOption('entity_test');
     $autocomplete_field_1 = $page->findField('field_linky[1][target_id]');
     $autocomplete_field_1->setValue($this->testEntity->label());
-    $target_type_select_2 = $assert_session->selectExists('field_linky[2][target_type]');
-    $target_type_select_2->selectOption('linky');
 
     // For the third, we're going to use the autocreate function here.
+    $target_type_select_2 = $assert_session->selectExists('field_linky[2][target_type]');
+    $target_type_select_2->selectOption('linky');
     $autocomplete_field_2 = $page->findField('field_linky[2][target_id]');
     $this->performAutocompleteQuery('http://exhample.com', $autocomplete_field_2);
     // We don't select from the list here. But add a new one, with a new title.
@@ -224,6 +224,38 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     $link = $test_entity->field_linky->get(2)->entity;
     $this->assertEquals('http://exhample.com', $link->link->uri);
     $this->assertEquals('Who likes ham', $link->link->title);
+
+    // Test allow_duplicate_urls disabled.
+    $this->drupalGet('entity_test/structure/entity_test/form-display');
+    $assert_session->buttonExists('field_linky_settings_edit')->press();
+    // Wait for AJAX.
+    $assert_session->assertWaitOnAjaxRequest();
+    $assert_session->fieldExists('fields[field_linky][settings_edit_form][settings][allow_duplicate_urls]')->uncheck();
+    $assert_session->buttonExists('field_linky_plugin_settings_update')->press();
+    $assert_session->assertWaitOnAjaxRequest();
+    $this->screenshotOutput();
+    $page->findButton('Save')->click();
+    $this->screenshotOutput();
+
+    $this->drupalGet('entity_test/manage/' . $id . '/edit');
+    $target_type_select_3 = $assert_session->selectExists('field_linky[3][target_type]');
+    $target_type_select_3->selectOption('linky');
+    $assert_session->assertWaitOnAjaxRequest();
+    $autocomplete_field_3 = $page->findField('field_linky[3][target_id]');
+    $this->performAutocompleteQuery('http://example.com', $autocomplete_field_3);
+    // Don't choose from the dropdown, and set a different title to ensure
+    // it uses the existing entity.
+    $linky_title_3 = $assert_session->fieldExists('field_linky[3][linky][linky_title]');
+    $linky_title_3->setValue('This awful site');
+    $this->screenshotOutput();
+    $page->findButton('Save')->click();
+    $this->screenshotOutput();
+
+    \Drupal::entityTypeManager()->getStorage('entity_test')->resetCache([$id]);
+    $test_entity = EntityTest::load($id);
+    $link = $test_entity->field_linky->get(3)->entity;
+    $this->assertEquals('http://example.com', $link->link->uri);
+    $this->assertEquals('This amazing site', $link->link->title);
   }
 
   /**
