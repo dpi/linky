@@ -54,7 +54,7 @@ use Drupal\user\UserInterface;
  *     "delete-form" = "/admin/content/linky/{linky}/delete",
  *     "collection" = "/admin/content/linky",
  *   },
- *   field_ui_base_route = "linky.settings"
+ *   field_ui_base_route = "entity.linky.admin"
  * )
  */
 class Linky extends ContentEntityBase implements LinkyInterface {

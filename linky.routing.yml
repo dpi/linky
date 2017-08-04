@@ -1,0 +1,8 @@
+entity.linky.admin:
+  path: '/admin/structure/linky'
+  defaults:
+    _controller: '\Drupal\field_ui\Controller\FieldConfigListController::listing'
+    _title: 'Manage fields'
+    entity_type_id: 'linky'
+  requirements:
+    _permission: 'administer linky fields'
