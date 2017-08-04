@@ -19,8 +19,18 @@ class LinkyTitle extends Title {
   /**
    * {@inheritdoc}
    */
+  public function build() {
+    $build = parent::build();
+    $build['#context']['output'] = $this->entity()->link->title;
+    return $build;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function entityRenderKey() {
-    return 'link__title';
+    // Fake the output as we replace this in build().
+    return 'created';
   }
 
 }
