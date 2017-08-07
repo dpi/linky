@@ -5,5 +5,5 @@ field.widget.settings.linky:
   label: 'Linky autocomplete widget display format settings'
   mapping:
     allow_duplicate_urls:
-      type: string
+      type: boolean
       label: 'Allow duplicate urls'
