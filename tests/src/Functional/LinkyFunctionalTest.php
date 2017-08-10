@@ -256,6 +256,23 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     $link = $test_entity->field_linky->get(3)->entity;
     $this->assertEquals('http://example.com', $link->link->uri);
     $this->assertEquals('This amazing site', $link->link->title);
+
+    // Test autocomplete validation.
+    $target_type_select_4 = $assert_session->selectExists('field_linky[4][target_type]');
+    $target_type_select_4->selectOption('linky');
+    $assert_session->assertWaitOnAjaxRequest();
+    // Validation should fail with no title.
+    $page->findField('field_linky[4][target_id]')->setValue('notavalidurl.com');
+    $page->findButton('Save')->click();
+    $assert_session->elementTextContains('css', '.messages', 'You must provide a title.');
+    // Validation should fail with invalid url.
+    $assert_session->fieldExists('field_linky[4][linky][linky_title]')->setValue('This invalid site');
+    $page->findButton('Save')->click();
+    $assert_session->elementTextContains('css', '.messages', 'You have entered an invalid URL. Please enter an external URL.');
+    // Validation should fail with invalid entity.
+    $page->findField('field_linky[4][target_id]')->setValue('I do not exist (123)');
+    $page->findButton('Save')->click();
+    $assert_session->elementTextContains('css', '.messages', 'The referenced entity (linky: 123) does not exist.');
   }
 
   /**
