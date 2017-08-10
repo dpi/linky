@@ -157,7 +157,6 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     // Wait for AJAX.
     $assert_session->assertWaitOnAjaxRequest();
     $page->findButton('Save')->click();
-    $this->htmlOutput($page->getContent());
     \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
 
     // Test adding field values.
@@ -171,7 +170,6 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     $button->click();
     // Wait for AJAX.
     $assert_session->assertWaitOnAjaxRequest();
-    $this->htmlOutput($page->getContent());
 
     // On the first field, we change it to a linky entity type.
     $target_type_select = $assert_session->selectExists('field_linky[0][target_type]');
@@ -212,9 +210,7 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     // We don't select from the list here. But add a new one, with a new title.
     $linky_title_2 = $assert_session->fieldExists('field_linky[2][linky][linky_title]');
     $linky_title_2->setValue('Who likes ham');
-    $this->screenshotOutput();
     $page->findButton('Save')->click();
-    $this->screenshotOutput();
     preg_match('|entity_test/manage/(\d+)|', $this->getSession()->getCurrentUrl(), $match);
     $id = $match[1];
     $assert_session->elementTextContains('css', '.messages', sprintf('entity_test %s has been created.', $id));
@@ -233,9 +229,7 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     $assert_session->fieldExists('fields[field_linky][settings_edit_form][settings][allow_duplicate_urls]')->uncheck();
     $assert_session->buttonExists('field_linky_plugin_settings_update')->press();
     $assert_session->assertWaitOnAjaxRequest();
-    $this->screenshotOutput();
     $page->findButton('Save')->click();
-    $this->screenshotOutput();
 
     $this->drupalGet('entity_test/manage/' . $id . '/edit');
     $target_type_select_3 = $assert_session->selectExists('field_linky[3][target_type]');
@@ -247,9 +241,7 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     // it uses the existing entity.
     $linky_title_3 = $assert_session->fieldExists('field_linky[3][linky][linky_title]');
     $linky_title_3->setValue('This awful site');
-    $this->screenshotOutput();
     $page->findButton('Save')->click();
-    $this->screenshotOutput();
 
     \Drupal::entityTypeManager()->getStorage('entity_test')->resetCache([$id]);
     $test_entity = EntityTest::load($id);
