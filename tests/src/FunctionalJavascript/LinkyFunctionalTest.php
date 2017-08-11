@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\linky\Functional;
+namespace Drupal\Tests\linky\FunctionalJavascript;
 
 use Behat\Mink\Element\NodeElement;
 use Drupal\Core\Cache\Cache;
