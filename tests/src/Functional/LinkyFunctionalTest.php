@@ -3,6 +3,7 @@
 namespace Drupal\Tests\linky\Functional;
 
 use Behat\Mink\Element\NodeElement;
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\entity_test\Entity\EntityTest;
 use Drupal\entity_test\Entity\EntityTestBundle;
@@ -76,6 +77,7 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     'access administration pages',
     'view test entity',
     'administer entity_test fields',
+    'administer entity_test display',
     'administer entity_test form display',
     'administer entity_test content',
     'add linky entities',
@@ -155,6 +157,10 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     // We can't use ::submitForm here because of AJAX.
     $assert_session->fieldExists('fields[field_linky][type]')->selectOption('linky');
     // Wait for AJAX.
+    $assert_session->assertWaitOnAjaxRequest();
+    $page->findButton('Save')->click();
+    $this->drupalGet('entity_test/structure/entity_test/display');
+    $assert_session->fieldExists('fields[field_linky][type]')->selectOption('linky_label');
     $assert_session->assertWaitOnAjaxRequest();
     $page->findButton('Save')->click();
     \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
@@ -265,6 +271,36 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     $page->findField('field_linky[4][target_id]')->setValue('I do not exist (123)');
     $page->findButton('Save')->click();
     $assert_session->elementTextContains('css', '.messages', 'The referenced entity (linky: 123) does not exist.');
+
+    // Test field formatter, default is to use the link title as the link text.
+    $this->drupalGet($test_entity->toUrl());
+    $assert_session->linkExists('This amazing site');
+    $assert_session->linkByHrefExists('http://example.com');
+    $assert_session->linkExists('Who likes ham');
+    $assert_session->linkByHrefExists('http://exhample.com');
+    // Set the parent_entity_label_link_text option.
+    $this->drupalGet('entity_test/structure/entity_test/display');
+    $assert_session->buttonExists('field_linky_settings_edit')->press();
+    $assert_session->assertWaitOnAjaxRequest();
+    $page->checkField('fields[field_linky][settings_edit_form][settings][parent_entity_label_link_text]');
+    $assert_session->buttonExists('field_linky_plugin_settings_update')->press();
+    $assert_session->assertWaitOnAjaxRequest();
+    $page->findButton('Save')->click();
+    Cache::invalidateTags(['entity_test:' . $id]);
+    $this->drupalGet($test_entity->toUrl());
+    $assert_session->linkExists($test_entity->label());
+    // Disable the output as link option.
+    $this->drupalGet('entity_test/structure/entity_test/display');
+    $assert_session->buttonExists('field_linky_settings_edit')->press();
+    $assert_session->assertWaitOnAjaxRequest();
+    $page->uncheckField('fields[field_linky][settings_edit_form][settings][link]');
+    $assert_session->buttonExists('field_linky_plugin_settings_update')->press();
+    $assert_session->assertWaitOnAjaxRequest();
+    $page->findButton('Save')->click();
+    Cache::invalidateTags(['entity_test:' . $id]);
+    $this->drupalGet($test_entity->toUrl());
+    $assert_session->pageTextContains('This amazing site');
+    $assert_session->linkNotExists('This amazing site');
   }
 
   /**
