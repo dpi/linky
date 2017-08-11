@@ -45,6 +45,15 @@ class LinkyFormatter extends DynamicEntityReferenceLabelFormatter {
   /**
    * {@inheritdoc}
    */
+  public function settingsSummary() {
+    $summary = parent::settingsSummary();
+    $summary[] = $this->getSetting('parent_entity_label_link_text') ? $this->t('Use parent entity label as link text') : $this->t('Use link title as link text');
+    return $summary;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function viewElements(FieldItemListInterface $items, $langcode) {
     $elements = parent::viewElements($items, $langcode);
     $output_as_link = $this->getSetting('link');
@@ -53,8 +62,8 @@ class LinkyFormatter extends DynamicEntityReferenceLabelFormatter {
         continue;
       }
 
-      // Use the link title instead of the entity label (which includes URL).
       if ($output_as_link && !$entity->isNew()) {
+        // Use the parent entity's label instead of the link title.
         if ($this->getSetting('parent_entity_label_link_text')) {
           $elements[$delta]['#title'] = $items[$delta]->getEntity()->label();
         }
