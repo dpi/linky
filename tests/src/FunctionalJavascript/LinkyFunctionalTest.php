@@ -164,27 +164,26 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     $assert_session->assertWaitOnAjaxRequest();
     $page->findButton('Save')->click();
     \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
-
     // Test adding field values.
     $this->drupalGet('entity_test/add');
-    // We add another item first.
-    $button = $page->findButton('Add another item');
-    $button->click();
-    // Wait for AJAX.
-    $assert_session->assertWaitOnAjaxRequest();
-    // Add a third option.
-    $button->click();
-    // Wait for AJAX.
-    $assert_session->assertWaitOnAjaxRequest();
 
     // On the first field, we change it to a linky entity type.
     $target_type_select = $assert_session->selectExists('field_linky[0][target_type]');
     $target_type_select->selectOption('entity_test');
     // Wait for dom.
-    $this->assertJsCondition("jQuery('.linky__title.invisible input[name=\"field_linky[0][linky][linky_title]\"]').length", 1000);
+    $this->assertTitleFieldInvisible();
     $target_type_select->selectOption('linky');
     // Now we've selected linky as target, field should be visible.
-    $this->assertJsCondition("jQuery('.linky__title:not(\".invisible\") input[name=\"field_linky[0][linky][linky_title]\"]').length", 1000);
+    $this->assertTitleFieldVisible();
+
+    // Add another item and ensure the title field is still visible.
+    $button = $page->findButton('Add another item');
+    $button->click();
+    $assert_session->assertWaitOnAjaxRequest();
+    $this->assertTitleFieldVisible();
+    // Add a third option.
+    $button->click();
+    $assert_session->assertWaitOnAjaxRequest();
 
     $autocomplete_field = $page->findField('field_linky[0][target_id]');
     // Search on link title.
@@ -199,7 +198,7 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     // Now if we select the element, the link title should hidden.
     $this->selectAutocompleteOption();
     // Wait for dom.
-    $this->assertJsCondition("jQuery('.linky__title.invisible input[name=\"field_linky[0][linky][linky_title]\"]').length", 1000);
+    $this->assertTitleFieldInvisible();
     $this->assertEquals('This amazing site (http://example.com) (' . $this->links[0]->id() . ')', $autocomplete_field->getValue());
 
     // Now lets populate the second one with another entity.
@@ -217,6 +216,14 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     $linky_title_2 = $assert_session->fieldExists('field_linky[2][linky][linky_title]');
     $linky_title_2->setValue('Who likes ham');
     $page->findButton('Save')->click();
+
+    // Ensure once entity is saved adding another item does not display the
+    // title field for existing values.
+    $button = $page->findButton('Add another item');
+    $button->click();
+    $assert_session->assertWaitOnAjaxRequest();
+    $this->assertTitleFieldInvisible();
+
     preg_match('|entity_test/manage/(\d+)|', $this->getSession()->getCurrentUrl(), $match);
     $id = $match[1];
     $assert_session->elementTextContains('css', '.messages', sprintf('entity_test %s has been created.', $id));
@@ -378,6 +385,26 @@ class LinkyFunctionalTest extends JavascriptTestBase {
   protected function screenshotOutput() {
     $filename = $this->createScreenshot('');
     $this->htmlOutput('<html><title>Screenshot</title><body><img src="/sites/simpletest/browser_output/' . basename($filename) . '" /></body></html>');
+  }
+
+  /**
+   * Asserts the title field is visible.
+   *
+   * @param int $delta
+   *   The field delta to check.
+   */
+  protected function assertTitleFieldVisible($delta = 0) {
+    $this->assertJsCondition("jQuery('.linky__title:not(\".invisible\") input[name=\"field_linky[$delta][linky][linky_title]\"]').length", 1000);
+  }
+
+  /**
+   * Asserts the title field is invisible.
+   *
+   * @param int $delta
+   *   The field delta to check.
+   */
+  protected function assertTitleFieldInvisible($delta = 0) {
+    $this->assertJsCondition("jQuery('.linky__title.invisible input[name=\"field_linky[$delta][linky][linky_title]\"]').length", 1000);
   }
 
 }
