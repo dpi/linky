@@ -1,10 +1,9 @@
 <?php
 
-namespace Drupal\Tests\linky\Functional;
+namespace Drupal\Tests\linky\Kernel;
 
 use Drupal\Core\Link;
 use Drupal\Core\Url;
-use Drupal\KernelTests\KernelTestBase;
 use Drupal\linky\Entity\Linky;
 
 /**
@@ -13,23 +12,7 @@ use Drupal\linky\Entity\Linky;
  * @group linky
  * @coversDefaultClass \Drupal\linky\Entity\Linky
  */
-class LinkyKernelTest extends KernelTestBase {
-
-  /**
-   * Modules to enable.
-   *
-   * @var array
-   */
-  public static $modules = ['linky', 'link', 'dynamic_entity_reference', 'user'];
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function setUp() {
-    parent::setUp();
-    $this->installEntitySchema('user');
-    $this->installEntitySchema('linky');
-  }
+class LinkyKernelTest extends LinkyKernelTestBase {
 
   /**
    * Tests basic entity functions.
@@ -58,11 +41,4 @@ class LinkyKernelTest extends KernelTestBase {
     $this->assertEquals(new Link('Edit', $edit_url), $link->toLink('Edit', 'edit-form'));
   }
 
-}
-
-// Global constants hack.
-if (!defined('DRUPAL_OPTIONAL')) {
-  define('DRUPAL_DISABLED', 0);
-  define('DRUPAL_OPTIONAL', 1);
-  define('DRUPAL_REQUIRED', 2);
 }
