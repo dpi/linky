@@ -7,10 +7,9 @@ use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityTypeInterface;
-use Drupal\Core\Link;
-use Drupal\Core\Url;
 use Drupal\link\LinkItemInterface;
 use Drupal\linky\LinkyInterface;
+use Drupal\linky\Url;
 use Drupal\user\UserInterface;
 
 /**
@@ -222,10 +221,12 @@ class Linky extends ContentEntityBase implements LinkyInterface {
    * {@inheritdoc}
    */
   public function toUrl($rel = 'canonical', array $options = []) {
+    $internalCanonical = parent::toUrl($rel, $options);
     if ($rel === 'canonical') {
+      $options['linky_entity_canonical'] = $internalCanonical;
       return Url::fromUri($this->link->uri, $options);
     }
-    return parent::toUrl($rel, $options);
+    return $internalCanonical;
   }
 
   /**
