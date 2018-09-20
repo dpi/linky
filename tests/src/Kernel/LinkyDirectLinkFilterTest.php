@@ -1,26 +1,22 @@
 <?php
 
-namespace Drupal\Tests\linky\Functional;
+namespace Drupal\Tests\linky\Kernel;
 
 use Drupal\filter\Entity\FilterFormat;
 use Drupal\linky\Entity\Linky;
-use Drupal\Tests\token\Kernel\KernelTestBase;
 
 /**
  * Tests linky filter.
  *
  * @group linky
  */
-class DirectLinkFilterTest extends KernelTestBase {
+class LinkyDirectLinkFilterTest extends LinkyKernelTestBase {
 
   /**
    * {@inheritdoc}
    */
   public static $modules = [
-    'linky',
     'filter',
-    'link',
-    'dynamic_entity_reference',
   ];
 
   /**
@@ -28,7 +24,6 @@ class DirectLinkFilterTest extends KernelTestBase {
    */
   protected function setUp() {
     parent::setUp();
-    $this->installEntitySchema('linky');
     $this->filter = FilterFormat::create([
       'format' => 'test_format',
       'name' => $this->randomMachineName(),
