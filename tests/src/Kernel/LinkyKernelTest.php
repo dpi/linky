@@ -30,14 +30,14 @@ class LinkyKernelTest extends LinkyKernelTestBase {
     ]);
     $link->save();
     $this->assertEquals('Example.com (http://example.com)', $link->label());
-    $this->assertEquals(Url::fromUri('http://example.com'), $link->toUrl());
+    $this->assertEquals(Url::fromUri('http://example.com')->toString(), $link->toUrl()->toString());
     $edit_url = Url::fromRoute('entity.linky.edit_form', ['linky' => $link->id()]);
     $edit_url
       ->setOption('entity_type', 'linky')
       ->setOption('entity', $link)
       ->setOption('language', $link->language());
     $this->assertEquals($edit_url, $link->toUrl('edit-form'));
-    $this->assertEquals(new Link('Example.com', Url::fromUri('http://example.com')), $link->toLink());
+    $this->assertEquals((new Link('Example.com', Url::fromUri('http://example.com')))->toString(), $link->toLink()->toString());
     $this->assertEquals(new Link('Edit', $edit_url), $link->toLink('Edit', 'edit-form'));
   }
 
