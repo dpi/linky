@@ -70,10 +70,10 @@ class LinkySelection extends DefaultSelection {
    * {@inheritdoc}
    */
   public function createNewEntity($entity_type_id, $bundle, $values, $uid) {
-    $entity = $this->entityManager->getStorage($entity_type_id)->create(array(
+    $entity = $this->entityManager->getStorage($entity_type_id)->create([
       'link' => $values,
       'uid' => $uid,
-    ));
+    ]);
 
     return $entity;
   }

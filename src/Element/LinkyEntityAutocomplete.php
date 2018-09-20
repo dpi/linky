@@ -38,11 +38,11 @@ class LinkyEntityAutocomplete extends EntityAutocomplete {
       // We build a new link entity using the provided URL and linky title.
       $value = NULL;
       if (!empty($element['#value'])) {
-        $options = array(
+        $options = [
           'target_type' => $element['#target_type'],
           'handler' => $element['#selection_handler'],
           'handler_settings' => $element['#selection_settings'],
-        );
+        ];
         /** @var \Drupal\Core\Entity\EntityReferenceSelection\SelectionInterface $handler */
         $handler = \Drupal::service('plugin.manager.entity_reference_selection')->getInstance($options);
         $autocreate = (bool) $element['#autocreate'] && $handler instanceof SelectionWithAutocreateInterface;
@@ -54,7 +54,7 @@ class LinkyEntityAutocomplete extends EntityAutocomplete {
           $value = $element['#value'];
         }
         else {
-          $input_values = array($element['#value']);
+          $input_values = [$element['#value']];
 
           foreach ($input_values as $input) {
             $match = static::extractEntityIdFromAutocompleteInput($input);
@@ -67,9 +67,9 @@ class LinkyEntityAutocomplete extends EntityAutocomplete {
             }
 
             if ($match !== NULL) {
-              $value[] = array(
+              $value[] = [
                 'target_id' => $match,
-              );
+              ];
             }
             elseif ($autocreate) {
               /** @var \Drupal\Core\Entity\EntityReferenceSelection\SelectionWithAutocreateInterface $handler */
@@ -119,9 +119,9 @@ class LinkyEntityAutocomplete extends EntityAutocomplete {
               if (!$valid_url) {
                 $form_state->setError($element, t('You have entered an invalid URL. Please enter an external URL.'));
               }
-              $value[] = array(
+              $value[] = [
                 'entity' => $handler->createNewEntity($element['#target_type'], $element['#autocreate']['bundle'], $input, $element['#autocreate']['uid']),
-              );
+              ];
             }
           }
         }
@@ -140,7 +140,7 @@ class LinkyEntityAutocomplete extends EntityAutocomplete {
             $valid_ids = $handler->validateReferenceableEntities($ids);
             if ($invalid_ids = array_diff($ids, $valid_ids)) {
               foreach ($invalid_ids as $invalid_id) {
-                $form_state->setError($element, t('The referenced entity (%type: %id) does not exist.', array('%type' => $element['#target_type'], '%id' => $invalid_id)));
+                $form_state->setError($element, t('The referenced entity (%type: %id) does not exist.', ['%type' => $element['#target_type'], '%id' => $invalid_id]));
               }
             }
           }
@@ -166,7 +166,7 @@ class LinkyEntityAutocomplete extends EntityAutocomplete {
 
             foreach ($invalid_new_entities as $entity) {
               /** @var \Drupal\Core\Entity\EntityInterface $entity */
-              $form_state->setError($element, t('This entity (%type: %label) cannot be referenced.', array('%type' => $element['#target_type'], '%label' => $entity->label())));
+              $form_state->setError($element, t('This entity (%type: %label) cannot be referenced.', ['%type' => $element['#target_type'], '%label' => $entity->label()]));
             }
           }
         }

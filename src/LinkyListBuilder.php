@@ -31,9 +31,9 @@ class LinkyListBuilder extends EntityListBuilder {
     $row['link'] = $this->l(
       $entity->label(),
       new Url(
-        'entity.linky.edit_form', array(
+        'entity.linky.edit_form', [
           'linky' => $entity->id(),
-        )
+        ]
       )
     );
     return $row + parent::buildRow($entity);

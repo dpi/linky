@@ -16,11 +16,11 @@ class LinkyViewsData extends EntityViewsData implements EntityViewsDataInterface
   public function getViewsData() {
     $data = parent::getViewsData();
 
-    $data['linky']['table']['base'] = array(
+    $data['linky']['table']['base'] = [
       'field' => 'id',
       'title' => $this->t('Managed Link'),
       'help' => $this->t('The Managed Link ID.'),
-    );
+    ];
 
     return $data;
   }
