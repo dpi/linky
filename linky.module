@@ -26,6 +26,22 @@ function linky_help($route_name, RouteMatchInterface $route_match) {
 }
 
 /**
+ * Implements hook_menu_local_actions_alter().
+ */
+function linky_menu_local_actions_alter(&$localActions) {
+  // Don't do anything if add action already has a destination.
+  if (!isset($localActions['entity.linky.add_form']['options']['query']['destination'])) {
+    /** @var \Drupal\Core\Routing\RouteProviderInterface $routeProvider */
+    $routeProvider = \Drupal::service('router.route_provider');
+    $path = '/admin/content/linky';
+    $routes = $routeProvider->getRoutesByPattern($path);
+    if ($routes->count() > 0) {
+      $localActions['entity.linky.add_form']['options']['query']['destination'] = $path;
+    }
+  }
+}
+
+/**
  * Implements hook_module_implements_alter().
  */
 function linky_module_implements_alter(&$implementations, $hook) {

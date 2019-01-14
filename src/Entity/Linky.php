@@ -21,7 +21,7 @@ use Drupal\user\UserInterface;
  *   id = "linky",
  *   label = @Translation("Managed Link"),
  *   handlers = {
- *     "view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
+ *     "view_builder" = "Drupal\linky\LinkyEntityViewBuilder",
  *     "list_builder" = "Drupal\linky\LinkyListBuilder",
  *     "views_data" = "Drupal\linky\Entity\LinkyViewsData",
  *
