@@ -3,6 +3,7 @@
 namespace Drupal\linky\Entity;
 
 use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\RevisionLogEntityTrait;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityChangedTrait;
@@ -37,14 +38,22 @@ use Drupal\user\UserInterface;
  *     },
  *   },
  *   base_table = "linky",
+ *   revision_table = "linky_revision",
+ *   show_revision_ui = TRUE,
  *   admin_permission = "administer linky entities",
  *   entity_keys = {
  *     "id" = "id",
+ *     "revision" = "revision_id",
  *     "label" = "link__title",
  *     "uuid" = "uuid",
  *     "uid" = "user_id",
  *     "langcode" = "langcode",
  *     "status" = "status",
+ *   },
+ *   revision_metadata_keys = {
+ *     "revision_user" = "revision_uid",
+ *     "revision_created" = "revision_created",
+ *     "revision_log_message" = "revision_log"
  *   },
  *   links = {
  *     "canonical" = "/admin/content/linky/{linky}",
@@ -58,6 +67,7 @@ use Drupal\user\UserInterface;
  */
 class Linky extends ContentEntityBase implements LinkyInterface {
   use EntityChangedTrait;
+  use RevisionLogEntityTrait;
 
   /**
    * {@inheritdoc}
@@ -133,10 +143,21 @@ class Linky extends ContentEntityBase implements LinkyInterface {
    * {@inheritdoc}
    */
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
+    $fields = [];
+
     $fields['id'] = BaseFieldDefinition::create('integer')
       ->setLabel(t('ID'))
       ->setDescription(t('The ID of the Managed Link entity.'))
       ->setReadOnly(TRUE);
+
+    $fields['revision_id'] = BaseFieldDefinition::create('integer')
+      ->setLabel(\t('Revision ID'))
+      ->setReadOnly(TRUE)
+      ->setSetting('unsigned', TRUE);
+
+    $fields += static::revisionLogBaseFieldDefinitions($entity_type);
+    $fields['revision_log']->setDisplayConfigurable('form', TRUE);
+
     $fields['uuid'] = BaseFieldDefinition::create('uuid')
       ->setLabel(t('UUID'))
       ->setDescription(t('The UUID of the Managed Link entity.'))
@@ -183,7 +204,8 @@ class Linky extends ContentEntityBase implements LinkyInterface {
       ->setDisplayOptions('form', [
         'type' => 'link_default',
         'weight' => -2,
-      ]);
+      ])
+      ->setRevisionable(TRUE);
 
     $fields['langcode'] = BaseFieldDefinition::create('language')
       ->setLabel(t('Language code'))
@@ -192,7 +214,8 @@ class Linky extends ContentEntityBase implements LinkyInterface {
         'type' => 'language_select',
         'weight' => 10,
       ])
-      ->setDisplayConfigurable('form', TRUE);
+      ->setDisplayConfigurable('form', TRUE)
+      ->setRevisionable(TRUE);
 
     $fields['created'] = BaseFieldDefinition::create('created')
       ->setLabel(t('Created'))
@@ -200,7 +223,8 @@ class Linky extends ContentEntityBase implements LinkyInterface {
 
     $fields['changed'] = BaseFieldDefinition::create('changed')
       ->setLabel(t('Changed'))
-      ->setDescription(t('The time that the entity was last edited.'));
+      ->setDescription(t('The time that the entity was last edited.'))
+      ->setRevisionable(TRUE);
 
     $fields['checked'] = BaseFieldDefinition::create('timestamp')
       ->setLabel(t('Last checked'))

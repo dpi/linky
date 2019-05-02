@@ -34,4 +34,12 @@ class LinkyForm extends ContentEntityForm {
     $form_state->setRedirect('entity.linky.canonical', ['linky' => $entity->id()]);
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  protected function getNewRevisionDefault() {
+    // Turn on revision creation by default.
+    return TRUE;
+  }
+
 }
