@@ -4,7 +4,6 @@
  * Post update functions for Linky.
  */
 
-use \Drupal\Core\Entity\Sql\SqlContentEntityStorageSchemaConverter;
 use Drupal\Core\Field\BaseFieldDefinition;
 
 /**
@@ -13,37 +12,76 @@ use Drupal\Core\Field\BaseFieldDefinition;
 function linky_post_update_revisionable(&$sandbox) {
   $entityTypeId = 'linky';
   $definitionUpdateManager = \Drupal::entityDefinitionUpdateManager();
+  $entityType = $definitionUpdateManager->getEntityType($entityTypeId);
+  /** @var \Drupal\Core\Entity\EntityLastInstalledSchemaRepositoryInterface $lastInstalledSchemaRepository */
+  $lastInstalledSchemaRepository = \Drupal::service('entity.last_installed_schema.repository');
+
+  // Update entity type definition.
+  $entityType->set('revision_table', 'linky_revision');
+  $entityType->set('show_revision_ui', TRUE);
+  $keys = $entityType->getKeys();
+  $keys['revision'] = 'revision_id';
+  $entityType->set('entity_keys', $keys);
+  $entityType->set('revision_metadata_keys', [
+    'revision_default' => 'revision_default',
+    'revision_user' => 'revision_uid',
+    'revision_created' => 'revision_created',
+    'revision_log_message' => 'revision_log'
+  ]);
 
   // Add new fields.
+  $fieldStorageDefinitions = $lastInstalledSchemaRepository->getLastInstalledFieldStorageDefinitions($entityTypeId);
+
   // Add revision field.
-  $revisionField = BaseFieldDefinition::create('integer')
+  // Normally defined by EntityFieldManager.
+  $fieldStorageDefinitions['revision_default'] = BaseFieldDefinition::create('boolean')
+    ->setName('revision_default')
+    ->setLabel(\t('Default revision'))
+    ->setDescription(t('A flag indicating whether this was a default revision when it was saved.'))
+    ->setTargetEntityTypeId($entityTypeId)
+    ->setTargetBundle(NULL)
+    ->setStorageRequired(TRUE)
+    ->setInternal(TRUE)
+    ->setTranslatable(FALSE)
+    ->setRevisionable(TRUE);
+
+  $fieldStorageDefinitions['revision_id'] = BaseFieldDefinition::create('integer')
+    ->setName('revision_id')
     ->setLabel(\t('Revision ID'))
+    ->setTargetEntityTypeId($entityTypeId)
+    ->setTargetBundle(NULL)
     ->setReadOnly(TRUE)
     ->setSetting('unsigned', TRUE);
-  $definitionUpdateManager->installFieldStorageDefinition('revision_id', $entityTypeId, 'linky', $revisionField);
 
   // Add revision created date field.
   // Cannot copy from other field because complaints of mismatched field types:
   // 'created' versus 'changed'.
-  $revisionCreatedField = BaseFieldDefinition::create('created')
+  $fieldStorageDefinitions['revision_created'] = BaseFieldDefinition::create('created')
+    ->setName('revision_created')
     ->setLabel(t('Revision create time'))
     ->setDescription(t('The time that the current revision was created.'))
+    ->setTargetEntityTypeId($entityTypeId)
+    ->setTargetBundle(NULL)
     ->setRevisionable(TRUE);
-  $definitionUpdateManager->installFieldStorageDefinition('revision_created', $entityTypeId, 'linky', $revisionCreatedField);
 
   // Add revision author field.
-  $revisionUserField = BaseFieldDefinition::create('entity_reference')
+  $fieldStorageDefinitions['revision_uid'] = BaseFieldDefinition::create('entity_reference')
+    ->setName('revision_uid')
     ->setLabel(t('Revision user'))
     ->setDescription(t('The user ID of the author of the current revision.'))
+    ->setTargetEntityTypeId($entityTypeId)
+    ->setTargetBundle(NULL)
     ->setSetting('target_type', 'user')
     ->setRevisionable(TRUE)
     ->setInitialValueFromField('user_id');
-  $definitionUpdateManager->installFieldStorageDefinition('revision_uid', $entityTypeId, 'linky', $revisionUserField);
 
   // Add revision log field.
-  $revisionLogMessageField = BaseFieldDefinition::create('string_long')
+  $fieldStorageDefinitions['revision_log'] = BaseFieldDefinition::create('string_long')
+    ->setName('revision_log')
     ->setLabel(t('Revision log message'))
     ->setDescription(t('Briefly describe the changes you have made.'))
+    ->setTargetEntityTypeId($entityTypeId)
+    ->setTargetBundle(NULL)
     ->setRevisionable(TRUE)
     ->setDefaultValue('')
     ->setDisplayOptions('form', [
@@ -54,42 +92,23 @@ function linky_post_update_revisionable(&$sandbox) {
       ],
     ])
     ->setDisplayConfigurable('form', TRUE);
-  $definitionUpdateManager->installFieldStorageDefinition('revision_log', $entityTypeId, 'linky', $revisionLogMessageField);
+
+  $definitionUpdateManager->updateFieldableEntityType($entityType, $fieldStorageDefinitions, $sandbox);
+
+  return \t('Managed Links converted to revisionable.');
 }
 
 /**
- * Do the revision table creation and data migration.
+ * Copies values from base table to revision table.
  *
- * This in an isolated separate step because it may be executed many times with
- * sandbox.
- */
-function linky_post_update_revisionable_data_migration(&$sandbox) {
-  $schemaConverter = new SqlContentEntityStorageSchemaConverter(
-    'linky',
-    \Drupal::entityTypeManager(),
-    \Drupal::entityDefinitionUpdateManager(),
-    \Drupal::service('entity.last_installed_schema.repository'),
-    \Drupal::keyValue('entity.storage_schema.sql'),
-    \Drupal::database()
-  );
-
-  $schemaConverter->convertToRevisionable($sandbox, [
-    'user_id',
-    'link',
-    'changed',
-  ]);
-}
-
-/**
- * Copies value of changed to revision_created.
- *
- * Cannot simply use setInitialValueFromField when installing the field
- * because \Drupal\Core\Entity\Sql\SqlContentEntityStorageSchema::getSharedTableFieldSchema
- * complains about mismatched field types.Instead, simply copy value of
- * 'changed' column to 'revision_created'.
+ * For some reason values aren't copied over with setInitialValueFromField.
  */
 function linky_post_update_revisionable_data_revision_date(&$sandbox) {
-  $update = \Drupal::database()->update('linky_revision');
-  $update->expression('revision_created', 'changed');
-  $update->execute();
+  \Drupal::database()->query('UPDATE linky_revision r
+LEFT JOIN linky base ON base.id=r.id
+SET 
+r.revision_created = base.created,
+r.revision_uid = base.user_id');
+
+  return \t('Copied values from Managed Link base table to revision table.');
 }

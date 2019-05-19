@@ -7,4 +7,4 @@ dependencies:
   - dynamic_entity_reference
   - link
   - user
-  - drupal:system (>= 8.4)
+  - drupal:system (>= 8.7)

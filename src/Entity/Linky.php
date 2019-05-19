@@ -51,6 +51,7 @@ use Drupal\user\UserInterface;
  *     "status" = "status",
  *   },
  *   revision_metadata_keys = {
+ *     "revision_default" = "revision_default",
  *     "revision_user" = "revision_uid",
  *     "revision_created" = "revision_created",
  *     "revision_log_message" = "revision_log"
@@ -157,6 +158,7 @@ class Linky extends ContentEntityBase implements LinkyInterface {
 
     $fields += static::revisionLogBaseFieldDefinitions($entity_type);
     $fields['revision_log']->setDisplayConfigurable('form', TRUE);
+    $fields['revision_uid']->setInitialValueFromField('user_id');
 
     $fields['uuid'] = BaseFieldDefinition::create('uuid')
       ->setLabel(t('UUID'))
@@ -170,7 +172,6 @@ class Linky extends ContentEntityBase implements LinkyInterface {
       ->setSetting('target_type', 'user')
       ->setSetting('handler', 'default')
       ->setDefaultValueCallback('Drupal\node\Entity\Node::getCurrentUserId')
-      ->setTranslatable(TRUE)
       ->setDisplayOptions('view', [
         'label' => 'hidden',
         'type' => 'author',
