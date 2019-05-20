@@ -93,6 +93,11 @@ function linky_post_update_revisionable(&$sandbox) {
     ])
     ->setDisplayConfigurable('form', TRUE);
 
+  // Update existing fields.
+  $fieldStorageDefinitions['changed']->setRevisionable(TRUE);
+  $fieldStorageDefinitions['link']->setRevisionable(TRUE);
+  $fieldStorageDefinitions['langcode']->setRevisionable(TRUE);
+
   $definitionUpdateManager->updateFieldableEntityType($entityType, $fieldStorageDefinitions, $sandbox);
 
   return \t('Managed Links converted to revisionable.');
@@ -107,7 +112,7 @@ function linky_post_update_revisionable_data_revision_date(&$sandbox) {
   \Drupal::database()->query('UPDATE linky_revision r
 LEFT JOIN linky base ON base.id=r.id
 SET 
-r.revision_created = base.created,
+r.revision_created = r.changed,
 r.revision_uid = base.user_id');
 
   return \t('Copied values from Managed Link base table to revision table.');
