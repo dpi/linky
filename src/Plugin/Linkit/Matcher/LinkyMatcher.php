@@ -43,6 +43,10 @@ class LinkyMatcher extends EntityMatcher {
     $query->addTag('entity_access');
     $query->addTag($this->targetType . '_access');
 
+    if ($this->configuration['limit']) {
+      $query->range(0, $this->configuration['limit']);
+    }
+
     return $query;
   }
 
