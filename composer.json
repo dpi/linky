@@ -10,5 +10,12 @@
     "issues": "http://drupal.org/project/issues/linky",
     "source": "http://cgit.drupalcode.org/linky"
   },
-  "require": { }
+  "require": { },
+  "suggest": {
+    "drupal/ds": "Plugin is available to show Linky title as a DsField.",
+    "drupal/linkit": "Integration with Linkit suggestions."
+  },
+  "conflict": {
+    "drupal/linkit": "<5.0"
+  }
 }
