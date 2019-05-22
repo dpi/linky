@@ -8,9 +8,11 @@ use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\link\LinkItemInterface;
 use Drupal\linky\LinkyInterface;
 use Drupal\linky\Url;
+use Drupal\user\EntityOwnerTrait;
 use Drupal\user\UserInterface;
 
 /**
@@ -43,12 +45,11 @@ use Drupal\user\UserInterface;
  *   admin_permission = "administer linky entities",
  *   entity_keys = {
  *     "id" = "id",
- *     "revision" = "revision_id",
  *     "label" = "link__title",
- *     "uuid" = "uuid",
- *     "uid" = "user_id",
  *     "langcode" = "langcode",
- *     "status" = "status",
+ *     "owner" = "user_id",
+ *     "revision" = "revision_id",
+ *     "uuid" = "uuid",
  *   },
  *   revision_metadata_keys = {
  *     "revision_default" = "revision_default",
@@ -67,18 +68,9 @@ use Drupal\user\UserInterface;
  * )
  */
 class Linky extends ContentEntityBase implements LinkyInterface {
+  use EntityOwnerTrait;
   use EntityChangedTrait;
   use RevisionLogEntityTrait;
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function preCreate(EntityStorageInterface $storage_controller, array &$values) {
-    parent::preCreate($storage_controller, $values);
-    $values += [
-      'user_id' => \Drupal::currentUser()->id(),
-    ];
-  }
 
   /**
    * {@inheritdoc}
@@ -92,36 +84,6 @@ class Linky extends ContentEntityBase implements LinkyInterface {
    */
   public function setCreatedTime($timestamp) {
     $this->set('created', $timestamp);
-    return $this;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getOwner() {
-    return $this->get('user_id')->entity;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getOwnerId() {
-    return $this->get('user_id')->target_id;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setOwnerId($uid) {
-    $this->set('user_id', $uid);
-    return $this;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setOwner(UserInterface $account) {
-    $this->set('user_id', $account->id());
     return $this;
   }
 
@@ -144,34 +106,19 @@ class Linky extends ContentEntityBase implements LinkyInterface {
    * {@inheritdoc}
    */
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
-    $fields = [];
-
-    $fields['id'] = BaseFieldDefinition::create('integer')
-      ->setLabel(t('ID'))
-      ->setDescription(t('The ID of the Managed Link entity.'))
-      ->setReadOnly(TRUE);
-
-    $fields['revision_id'] = BaseFieldDefinition::create('integer')
-      ->setLabel(\t('Revision ID'))
-      ->setReadOnly(TRUE)
-      ->setSetting('unsigned', TRUE);
-
+    $fields = parent::baseFieldDefinitions($entity_type);
+    $fields += static::ownerBaseFieldDefinitions($entity_type);
     $fields += static::revisionLogBaseFieldDefinitions($entity_type);
+
+    $fields['id']->setDescription(new TranslatableMarkup('The ID of the Managed Link entity.'));
+    $fields['uuid']->setDescription(new TranslatableMarkup('The UUID of the Managed Link entity.'));
     $fields['revision_log']->setDisplayConfigurable('form', TRUE);
-    $fields['revision_uid']->setInitialValueFromField('user_id');
 
-    $fields['uuid'] = BaseFieldDefinition::create('uuid')
-      ->setLabel(t('UUID'))
-      ->setDescription(t('The UUID of the Managed Link entity.'))
-      ->setReadOnly(TRUE);
 
-    $fields['user_id'] = BaseFieldDefinition::create('entity_reference')
-      ->setLabel(t('Authored by'))
-      ->setDescription(t('The user ID of author of the Managed Link entity.'))
+    $fields['user_id']->setLabel(new TranslatableMarkup('Authored by'))
+      ->setDescription(new TranslatableMarkup('The user ID of author of the Managed Link entity.'))
       ->setRevisionable(TRUE)
-      ->setSetting('target_type', 'user')
       ->setSetting('handler', 'default')
-      ->setDefaultValueCallback('Drupal\node\Entity\Node::getCurrentUserId')
       ->setDisplayOptions('view', [
         'label' => 'hidden',
         'type' => 'author',
@@ -191,8 +138,8 @@ class Linky extends ContentEntityBase implements LinkyInterface {
       ->setDisplayConfigurable('view', TRUE);
 
     $fields['link'] = BaseFieldDefinition::create('link')
-      ->setLabel(t('Link'))
-      ->setDescription(t('The location this managed link points to.'))
+      ->setLabel(new TranslatableMarkup('Link'))
+      ->setDescription(new TranslatableMarkup('The location this managed link points to.'))
       ->setRequired(TRUE)
       ->setSettings([
         'link_type' => LinkItemInterface::LINK_EXTERNAL,
@@ -208,28 +155,18 @@ class Linky extends ContentEntityBase implements LinkyInterface {
       ])
       ->setRevisionable(TRUE);
 
-    $fields['langcode'] = BaseFieldDefinition::create('language')
-      ->setLabel(t('Language code'))
-      ->setDescription(t('The language code for the Managed Link entity.'))
-      ->setDisplayOptions('form', [
-        'type' => 'language_select',
-        'weight' => 10,
-      ])
-      ->setDisplayConfigurable('form', TRUE)
-      ->setRevisionable(TRUE);
-
     $fields['created'] = BaseFieldDefinition::create('created')
-      ->setLabel(t('Created'))
-      ->setDescription(t('The time that the entity was created.'));
+      ->setLabel(new TranslatableMarkup('Created'))
+      ->setDescription(new TranslatableMarkup('The time that the entity was created.'));
 
     $fields['changed'] = BaseFieldDefinition::create('changed')
-      ->setLabel(t('Changed'))
-      ->setDescription(t('The time that the entity was last edited.'))
+      ->setLabel(new TranslatableMarkup('Changed'))
+      ->setDescription(new TranslatableMarkup('The time that the entity was last edited.'))
       ->setRevisionable(TRUE);
 
     $fields['checked'] = BaseFieldDefinition::create('timestamp')
-      ->setLabel(t('Last checked'))
-      ->setDescription(t('The time that the link was last checked.'))
+      ->setLabel(new TranslatableMarkup('Last checked'))
+      ->setDescription(new TranslatableMarkup('The time that the link was last checked.'))
       ->setDefaultValue(0);
 
     return $fields;

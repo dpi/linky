@@ -5,9 +5,10 @@
  */
 
 use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 
 /**
- * Update Linky to be revisionable.
+ * Convert Linky entities to be revisionable.
  */
 function linky_post_update_revisionable(&$sandbox) {
   $entityTypeId = 'linky';
@@ -20,7 +21,10 @@ function linky_post_update_revisionable(&$sandbox) {
   $entityType->set('revision_table', 'linky_revision');
   $entityType->set('show_revision_ui', TRUE);
   $keys = $entityType->getKeys();
+  $keys['owner'] = 'user_id';
   $keys['revision'] = 'revision_id';
+  unset($keys['uid']);
+  unset($keys['status']);
   $entityType->set('entity_keys', $keys);
   $entityType->set('revision_metadata_keys', [
     'revision_default' => 'revision_default',
@@ -32,12 +36,20 @@ function linky_post_update_revisionable(&$sandbox) {
   // Add new fields.
   $fieldStorageDefinitions = $lastInstalledSchemaRepository->getLastInstalledFieldStorageDefinitions($entityTypeId);
 
-  // Add revision field.
+  // Add revision fields
+  $fieldStorageDefinitions['revision_id'] = BaseFieldDefinition::create('integer')
+    ->setName('revision_id')
+    ->setLabel(new TranslatableMarkup('Revision ID'))
+    ->setTargetEntityTypeId($entityTypeId)
+    ->setTargetBundle(NULL)
+    ->setReadOnly(TRUE)
+    ->setSetting('unsigned', TRUE);
+
   // Normally defined by EntityFieldManager.
   $fieldStorageDefinitions['revision_default'] = BaseFieldDefinition::create('boolean')
     ->setName('revision_default')
-    ->setLabel(\t('Default revision'))
-    ->setDescription(t('A flag indicating whether this was a default revision when it was saved.'))
+    ->setLabel(new TranslatableMarkup('Default revision'))
+    ->setDescription(new TranslatableMarkup('A flag indicating whether this was a default revision when it was saved.'))
     ->setTargetEntityTypeId($entityTypeId)
     ->setTargetBundle(NULL)
     ->setStorageRequired(TRUE)
@@ -45,35 +57,28 @@ function linky_post_update_revisionable(&$sandbox) {
     ->setTranslatable(FALSE)
     ->setRevisionable(TRUE);
 
-  $fieldStorageDefinitions['revision_id'] = BaseFieldDefinition::create('integer')
-    ->setName('revision_id')
-    ->setLabel(\t('Revision ID'))
+  // Add revision author field.
+  $fieldStorageDefinitions['revision_uid'] = BaseFieldDefinition::create('entity_reference')
+    ->setName('revision_uid')
+    ->setLabel(new TranslatableMarkup('Revision user'))
+    ->setDescription(new TranslatableMarkup('The user ID of the author of the current revision.'))
     ->setTargetEntityTypeId($entityTypeId)
     ->setTargetBundle(NULL)
-    ->setReadOnly(TRUE)
-    ->setSetting('unsigned', TRUE);
+    ->setSetting('target_type', 'user')
+    ->setRevisionable(TRUE)
+    ->setInitialValueFromField('user_id');
+
 
   // Add revision created date field.
   // Cannot copy from other field because complaints of mismatched field types:
   // 'created' versus 'changed'.
   $fieldStorageDefinitions['revision_created'] = BaseFieldDefinition::create('created')
     ->setName('revision_created')
-    ->setLabel(t('Revision create time'))
-    ->setDescription(t('The time that the current revision was created.'))
+    ->setLabel(new TranslatableMarkup('Revision create time'))
+    ->setDescription(new TranslatableMarkup('The time that the current revision was created.'))
     ->setTargetEntityTypeId($entityTypeId)
     ->setTargetBundle(NULL)
     ->setRevisionable(TRUE);
-
-  // Add revision author field.
-  $fieldStorageDefinitions['revision_uid'] = BaseFieldDefinition::create('entity_reference')
-    ->setName('revision_uid')
-    ->setLabel(t('Revision user'))
-    ->setDescription(t('The user ID of the author of the current revision.'))
-    ->setTargetEntityTypeId($entityTypeId)
-    ->setTargetBundle(NULL)
-    ->setSetting('target_type', 'user')
-    ->setRevisionable(TRUE)
-    ->setInitialValueFromField('user_id');
 
   // Add revision log field.
   $fieldStorageDefinitions['revision_log'] = BaseFieldDefinition::create('string_long')
@@ -98,9 +103,11 @@ function linky_post_update_revisionable(&$sandbox) {
   $fieldStorageDefinitions['link']->setRevisionable(TRUE);
   $fieldStorageDefinitions['langcode']->setRevisionable(TRUE);
 
+
+
   $definitionUpdateManager->updateFieldableEntityType($entityType, $fieldStorageDefinitions, $sandbox);
 
-  return \t('Managed Links converted to revisionable.');
+  return new TranslatableMarkup('Managed Links converted to revisionable.');
 }
 
 /**
@@ -111,9 +118,9 @@ function linky_post_update_revisionable(&$sandbox) {
 function linky_post_update_revisionable_data_revision_date(&$sandbox) {
   \Drupal::database()->query('UPDATE linky_revision r
 LEFT JOIN linky base ON base.id=r.id
-SET 
+SET
 r.revision_created = r.changed,
 r.revision_uid = base.user_id');
 
-  return \t('Copied values from Managed Link base table to revision table.');
+  return new TranslatableMarkup('Copied values from Managed Link base table to revision table.');
 }
