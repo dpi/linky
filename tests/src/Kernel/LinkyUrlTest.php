@@ -5,6 +5,7 @@ namespace Drupal\Tests\linky\Kernel;
 use Drupal\entity_test\Entity\EntityTest;
 use Drupal\linky\Entity\Linky;
 use Drupal\linky\Url;
+use Drupal\Tests\user\Traits\UserCreationTrait;
 
 /**
  * Tests Linky URL.
@@ -13,6 +14,8 @@ use Drupal\linky\Url;
  * @coversDefaultClass \Drupal\linky\Url
  */
 class LinkyUrlTest extends LinkyKernelTestBase {
+
+  use UserCreationTrait;
 
   /**
    * {@inheritdoc}
@@ -26,6 +29,8 @@ class LinkyUrlTest extends LinkyKernelTestBase {
    */
   public function testInternal() {
     $this->installEntitySchema('entity_test');
+    $this->setUpCurrentUser();
+
     $entity = EntityTest::create();
     $entity->save();
     $entityId = $entity->id();
