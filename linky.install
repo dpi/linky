@@ -1,0 +1,31 @@
+<?php
+
+/**
+ * Install file for Linky.
+ */
+
+/**
+ * Convert linky ID column to unsigned.
+ */
+function linky_update_8101() {
+  // Get the current schema, change it.
+  $key_value_store_schema = \Drupal::keyValue('entity.storage_schema.sql');
+  $schema = $key_value_store_schema->get('linky.field_schema_data.id');
+  $schema['linky']['fields']['id']['unsigned'] = TRUE;
+
+  // Set the 'unsigned' to TRUE on 'id' field.
+  \Drupal::database()
+    ->schema()
+    ->changeField('linky', 'id', 'id', $schema['linky']['fields']['id']);
+
+  // Update the stored schema.
+  $key_value_store_schema->set('linky.field_schema_data.id', $schema);
+
+  // Update the last installed field definition and field schema.
+  $entity_field_manager = \Drupal::service('entity_field.manager');
+  $entity_field_manager->clearCachedFieldDefinitions();
+
+  $storage_definition = $entity_field_manager->getFieldStorageDefinitions('linky')['id'];
+  \Drupal::service('entity.last_installed_schema.repository')
+    ->setLastInstalledFieldStorageDefinition($storage_definition);
+}

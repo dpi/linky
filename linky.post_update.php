@@ -10,7 +10,7 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 /**
  * Convert Linky entities to be revisionable.
  */
-function linky_post_update_revisionable(&$sandbox) {
+function linky_post_update_make_linky_revisionable(&$sandbox) {
   $entityTypeId = 'linky';
   $definitionUpdateManager = \Drupal::entityDefinitionUpdateManager();
   $entityType = $definitionUpdateManager->getEntityType($entityTypeId);
@@ -36,7 +36,7 @@ function linky_post_update_revisionable(&$sandbox) {
   // Add new fields.
   $fieldStorageDefinitions = $lastInstalledSchemaRepository->getLastInstalledFieldStorageDefinitions($entityTypeId);
 
-  // Add revision fields
+  // Add revision fields.
   $fieldStorageDefinitions['revision_id'] = BaseFieldDefinition::create('integer')
     ->setName('revision_id')
     ->setLabel(new TranslatableMarkup('Revision ID'))
@@ -112,10 +112,9 @@ function linky_post_update_revisionable(&$sandbox) {
 
 /**
  * Copies values from base table to revision table.
- *
- * For some reason values aren't copied over with setInitialValueFromField.
  */
-function linky_post_update_revisionable_data_revision_date(&$sandbox) {
+function linky_post_update_set_default_revisionable_data() {
+  // For some reason values aren't copied over with setInitialValueFromField.
   \Drupal::database()->query('UPDATE linky_revision r
 LEFT JOIN linky base ON base.id=r.id
 SET
