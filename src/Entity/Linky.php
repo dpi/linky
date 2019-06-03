@@ -2,6 +2,7 @@
 
 namespace Drupal\linky\Entity;
 
+use Drupal\Core\Entity\EntityMalformedException;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\RevisionLogEntityTrait;
 use Drupal\Core\Field\BaseFieldDefinition;
@@ -186,7 +187,13 @@ class Linky extends ContentEntityBase implements LinkyInterface {
     $internalCanonical = parent::toUrl($rel, $options);
     if ($rel === 'canonical') {
       $options['linky_entity_canonical'] = $internalCanonical;
-      return Url::fromUri($this->link->uri, $options);
+      try {
+        return Url::fromUri($this->link->uri, $options);
+      }
+      catch (\InvalidArgumentException $exception) {
+        // Re-create exception as one that the interface allows.
+        throw new EntityMalformedException($exception->getMessage(), $exception->getCode(), $exception);
+      }
     }
     return $internalCanonical;
   }
