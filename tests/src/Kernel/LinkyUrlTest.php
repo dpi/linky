@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\linky\Kernel;
 
+use Drupal\Core\Entity\EntityMalformedException;
 use Drupal\entity_test\Entity\EntityTest;
 use Drupal\linky\Entity\Linky;
 use Drupal\linky\Url;
@@ -67,6 +68,26 @@ class LinkyUrlTest extends LinkyKernelTestBase {
     $this->assertInstanceOf(Url::class, $url);
     $this->assertEquals('admin/content/linky/' . $link->id(), $url->getInternalPath());
     $this->assertEquals('http://hello.world/kapoww', $url->toString());
+  }
+
+  /**
+   * Malformed URL throws correct exception.
+   *
+   * \Drupal\linky\Entity\Linky::toUrl calls \Drupal\Core\Url::fromUri which
+   * throws exceptions, make sure fromUri exceptions are the same exceptions
+   * that EntityInterface::toUrl is permitted to throw.
+   */
+  public function testMalformedUrlException() {
+    $this->setExpectedException(EntityMalformedException::class, "The URI 'http://hello: world' is malformed.");
+    // Malformed URL.
+    $link = Linky::create([
+      'link' => [
+        'uri' => 'http://hello: world',
+      ],
+    ]);
+    $link->save();
+    // Must be canonical.
+    $link->toUrl('canonical');
   }
 
 }
