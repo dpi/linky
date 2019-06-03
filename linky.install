@@ -1,0 +1,39 @@
+<?php
+
+/**
+ * Install file for Linky.
+ */
+
+use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
+
+/**
+ * Convert linky ID column to unsigned.
+ */
+function linky_update_8101() {
+  // Get the current schema, change it.
+  $entity_type_id = 'linky';
+  $key_value_store_schema = \Drupal::keyValue('entity.storage_schema.sql');
+  $schema = $key_value_store_schema->get('linky.field_schema_data.id');
+  $schema[$entity_type_id]['fields']['id']['unsigned'] = TRUE;
+
+  // Set the 'unsigned' to TRUE on 'id' field.
+  \Drupal::database()
+    ->schema()
+    ->changeField($entity_type_id, 'id', 'id', $schema[$entity_type_id]['fields']['id']);
+
+  // Update the stored schema.
+  $key_value_store_schema->set('linky.field_schema_data.id', $schema);
+
+  // Update the last installed field definition.
+  $storage_definition = BaseFieldDefinition::create('integer')
+    ->setName('id')
+    ->setLabel(new TranslatableMarkup('ID'))
+    ->setDescription(new TranslatableMarkup('The ID of the Managed Link entity.'))
+    ->setTargetEntityTypeId($entity_type_id)
+    ->setTargetBundle(NULL)
+    ->setReadOnly(TRUE)
+    ->setSetting('unsigned', TRUE);
+  \Drupal::service('entity.last_installed_schema.repository')
+    ->setLastInstalledFieldStorageDefinition($storage_definition);
+}

@@ -13,7 +13,8 @@
   "require": { },
   "suggest": {
     "drupal/ds": "Plugin is available to show Linky title as a DsField.",
-    "drupal/linkit": "Integration with Linkit suggestions."
+    "drupal/linkit": "Integration with Linkit suggestions.",
+    "drupal/linky_revision_ui": "Adds a Revision UI (tab) for Managed Links."
   },
   "conflict": {
     "drupal/linkit": "<5.0"
