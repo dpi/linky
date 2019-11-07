@@ -7,7 +7,7 @@ use Drupal\Core\Cache\Cache;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\entity_test\Entity\EntityTest;
 use Drupal\entity_test\Entity\EntityTestBundle;
-use Drupal\FunctionalJavascriptTests\JavascriptTestBase;
+use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 use Drupal\linky\Entity\Linky;
 
 /**
@@ -15,7 +15,7 @@ use Drupal\linky\Entity\Linky;
  *
  * @group linky
  */
-class LinkyFunctionalTest extends JavascriptTestBase {
+class LinkyFunctionalTest extends WebDriverTestBase {
 
   /**
    * Screenshot counter.
@@ -23,11 +23,6 @@ class LinkyFunctionalTest extends JavascriptTestBase {
    * @var int
    */
   protected $screenshotCounter = 0;
-
-  /**
-   * Enter key code.
-   */
-  const ENTER_KEY = 13;
 
   /**
    * Escape key code.
@@ -54,6 +49,15 @@ class LinkyFunctionalTest extends JavascriptTestBase {
    * @var \Drupal\entity_test\Entity\EntityTest
    */
   protected $testEntity;
+
+  /**
+   * Get around DER's schema issues for now.
+   *
+   * @todo Remove in https://www.drupal.org/project/linky/issues/3093094
+   *
+   * @var bool
+   */
+  protected $strictConfigSchema = FALSE;
 
   /**
    * {@inheritdoc}
@@ -135,12 +139,14 @@ class LinkyFunctionalTest extends JavascriptTestBase {
 
     // Add a new dynamic entity reference field.
     $this->drupalGet('entity_test/structure/entity_test/fields/add-field');
-    $edit = [
-      'label' => 'Linky list',
-      'field_name' => 'linky',
-      'new_storage_type' => 'dynamic_entity_reference',
-    ];
-    $this->submitForm($edit, t('Save and continue'), 'field-ui-field-storage-add-form');
+    $select = $assert_session->selectExists('new_storage_type');
+    $select->selectOption('dynamic_entity_reference');
+    $label = $assert_session->fieldExists('label');
+    $label->setValue('Linky');
+    // Wait for the machine name.
+    $assert_session->waitForElementVisible('css', '[name="label"] + * .machine-name-value');
+    $this->submitForm([], t('Save and continue'), 'field-ui-field-storage-add-form');
+
     $entity_type_ids_select = $assert_session->selectExists('settings[entity_type_ids][]', $page);
     $entity_type_ids_select->selectOption('linky');
     $entity_type_ids_select->selectOption('entity_test', TRUE);
@@ -152,7 +158,8 @@ class LinkyFunctionalTest extends JavascriptTestBase {
     $assert_session->assertWaitOnAjaxRequest();
     $page->checkField('settings[linky][handler_settings][auto_create]');
     $this->submitForm([], t('Save settings'), 'field-config-edit-form');
-    $assert_session->pageTextContains('Saved Linky list configuration');
+
+    $assert_session->pageTextContains('Saved Linky configuration');
     $this->drupalGet('entity_test/structure/entity_test/form-display');
     // We can't use ::submitForm here because of AJAX.
     $assert_session->fieldExists('fields[field_linky][type]')->selectOption('linky');
@@ -311,7 +318,7 @@ class LinkyFunctionalTest extends JavascriptTestBase {
   }
 
   /**
-   * Peforms an autocomplete query on an element.
+   * Performs an autocomplete query on an element.
    *
    * @param string $autocomplete_query
    *   String to search for.
@@ -319,11 +326,8 @@ class LinkyFunctionalTest extends JavascriptTestBase {
    *   Field to search in.
    */
   protected function performAutocompleteQuery($autocomplete_query, NodeElement $autocomplete_field) {
-    foreach (str_split($autocomplete_query) as $char) {
-      // Autocomplete uses keydown/up directly.
-      $autocomplete_field->keyDown($char);
-      $autocomplete_field->keyUp($char);
-    }
+    $autocomplete_field->setValue($autocomplete_query);
+    $this->getSession()->getDriver()->keyDown($autocomplete_field->getXpath(), ' ');
     // Wait for ajax.
     $this->assertJsCondition('(typeof(jQuery)=="undefined" || (0 === jQuery.active && 0 === jQuery(\'.ui-autocomplete-loading\').length))', 20000);
     // And autocomplete selection.
