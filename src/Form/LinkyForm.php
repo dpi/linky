@@ -21,13 +21,13 @@ class LinkyForm extends ContentEntityForm {
 
     switch ($status) {
       case SAVED_NEW:
-        drupal_set_message($this->t('Created the %label Managed link.', [
+        $this->messenger()->addMessage($this->t('Created the %label Managed link.', [
           '%label' => $entity->label(),
         ]));
         break;
 
       default:
-        drupal_set_message($this->t('Saved the %label Managed Link.', [
+        $this->messenger()->addMessage($this->t('Saved the %label Managed Link.', [
           '%label' => $entity->label(),
         ]));
     }

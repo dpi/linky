@@ -4,8 +4,6 @@ namespace Drupal\linky;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityListBuilder;
-use Drupal\Core\Routing\LinkGeneratorTrait;
-use Drupal\Core\Url;
 
 /**
  * Defines a class to build a listing of Linky entities.
@@ -13,7 +11,6 @@ use Drupal\Core\Url;
  * @ingroup linky
  */
 class LinkyListBuilder extends EntityListBuilder {
-  use LinkGeneratorTrait;
 
   /**
    * {@inheritdoc}
@@ -28,14 +25,7 @@ class LinkyListBuilder extends EntityListBuilder {
    */
   public function buildRow(EntityInterface $entity) {
     /* @var $entity \Drupal\linky\Entity\Linky */
-    $row['link'] = $this->l(
-      $entity->label(),
-      new Url(
-        'entity.linky.edit_form', [
-          'linky' => $entity->id(),
-        ]
-      )
-    );
+    $row['link'] = $entity->toLink($entity->label(), 'edit-form');
     return $row + parent::buildRow($entity);
   }
 

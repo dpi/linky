@@ -78,7 +78,8 @@ class LinkyUrlTest extends LinkyKernelTestBase {
    * that EntityInterface::toUrl is permitted to throw.
    */
   public function testMalformedUrlException() {
-    $this->setExpectedException(EntityMalformedException::class, "The URI 'http://hello: world' is malformed.");
+    $this->expectException(EntityMalformedException::class);
+    $this->expectExceptionMessage("The URI 'http://hello: world' is malformed.");
     // Malformed URL.
     $link = Linky::create([
       'link' => [
