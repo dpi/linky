@@ -51,15 +51,6 @@ class LinkyFunctionalTest extends WebDriverTestBase {
   protected $testEntity;
 
   /**
-   * Get around DER's schema issues for now.
-   *
-   * @todo Remove in https://www.drupal.org/project/linky/issues/3093094
-   *
-   * @var bool
-   */
-  protected $strictConfigSchema = FALSE;
-
-  /**
    * {@inheritdoc}
    */
   public static $modules = [
