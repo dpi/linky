@@ -12,6 +12,7 @@ use Drupal\link\LinkItemInterface;
 use Drupal\linky\LinkyInterface;
 use Drupal\linky\Url;
 use Drupal\user\UserInterface;
+use Drupal\user\EntityOwnerTrait;
 
 /**
  * Defines the Linky entity.
@@ -59,6 +60,7 @@ use Drupal\user\UserInterface;
  */
 class Linky extends ContentEntityBase implements LinkyInterface {
   use EntityChangedTrait;
+  use EntityOwnerTrait;
 
   /**
    * {@inheritdoc}
@@ -149,7 +151,7 @@ class Linky extends ContentEntityBase implements LinkyInterface {
       ->setRevisionable(TRUE)
       ->setSetting('target_type', 'user')
       ->setSetting('handler', 'default')
-      ->setDefaultValueCallback('Drupal\node\Entity\Node::getCurrentUserId')
+      ->setDefaultValueCallback(static::class . '::getDefaultEntityOwner')
       ->setTranslatable(TRUE)
       ->setDisplayOptions('view', [
         'label' => 'hidden',
