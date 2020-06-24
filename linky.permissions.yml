@@ -7,10 +7,16 @@ administer linky entities:
   restrict access: true
 
 delete linky entities:
-  title: 'Delete Managed Link entities'
+  title: 'Delete all Managed Link entities'
+
+delete own linky entities:
+  title: 'Delete own Managed Link entities'
 
 edit linky entities:
-  title: 'Edit Managed Link entities'
+  title: 'Edit any Managed Link entities'
+
+edit own linky entities:
+  title: 'Edit own Managed Link entities'
 
 view linky entities:
   title: 'View published Managed Link entities'

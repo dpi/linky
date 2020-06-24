@@ -18,16 +18,30 @@ class LinkyAccessControlHandler extends EntityAccessControlHandler {
    * {@inheritdoc}
    */
   protected function checkAccess(EntityInterface $entity, $operation, AccountInterface $account) {
+    $is_owner = ($account->id() && $account->id() === $entity->getOwnerId());
+
     /** @var \Drupal\linky\LinkyInterface $entity */
     switch ($operation) {
       case 'view':
         return AccessResult::allowedIfHasPermission($account, 'view linky entities');
 
       case 'update':
-        return AccessResult::allowedIfHasPermission($account, 'edit linky entities');
+        if ($account->hasPermission('edit linky entities')) {
+          return AccessResult::allowed()->cachePerPermissions();
+        }
+        if ($account->hasPermission('edit own linky entities') && $is_owner) {
+          return AccessResult::allowed()->cachePerPermissions()->cachePerUser()->addCacheableDependency($entity);
+        }
+        return AccessResult::neutral("The following permissions are required: 'edit linky entities' OR 'edit own linky entities'.")->cachePerUser();
 
       case 'delete':
-        return AccessResult::allowedIfHasPermission($account, 'delete linky entities');
+        if ($account->hasPermission('delete linky entities')) {
+          return AccessResult::allowed()->cachePerPermissions();
+        }
+        if ($account->hasPermission('delete own linky entities') && $is_owner) {
+          return AccessResult::allowed()->cachePerPermissions()->cachePerUser()->addCacheableDependency($entity);
+        }
+        return AccessResult::neutral("The following permissions are required: 'delete linky entities' OR 'delete own linky entities'.")->cachePerUser();
     }
 
     // Unknown operation, no opinion.

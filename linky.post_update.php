@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @file
  * Post update functions for Linky.
  */
 
@@ -30,7 +31,7 @@ function linky_post_update_make_linky_revisionable(&$sandbox) {
     'revision_default' => 'revision_default',
     'revision_user' => 'revision_uid',
     'revision_created' => 'revision_created',
-    'revision_log_message' => 'revision_log'
+    'revision_log_message' => 'revision_log',
   ]);
 
   // Add new fields.
@@ -65,9 +66,7 @@ function linky_post_update_make_linky_revisionable(&$sandbox) {
     ->setTargetEntityTypeId($entityTypeId)
     ->setTargetBundle(NULL)
     ->setSetting('target_type', 'user')
-    ->setRevisionable(TRUE)
-    ->setInitialValueFromField('user_id');
-
+    ->setRevisionable(TRUE);
 
   // Add revision created date field.
   // Cannot copy from other field because complaints of mismatched field types:
@@ -103,8 +102,6 @@ function linky_post_update_make_linky_revisionable(&$sandbox) {
   $fieldStorageDefinitions['link']->setRevisionable(TRUE);
   $fieldStorageDefinitions['langcode']->setRevisionable(TRUE);
 
-
-
   $definitionUpdateManager->updateFieldableEntityType($entityType, $fieldStorageDefinitions, $sandbox);
 
   return new TranslatableMarkup('Managed Links converted to revisionable.');
@@ -114,9 +111,11 @@ function linky_post_update_make_linky_revisionable(&$sandbox) {
  * Copies values from base table to revision table.
  */
 function linky_post_update_set_default_revisionable_data() {
-  // For some reason values aren't copied over with setInitialValueFromField.
-  \Drupal::database()->query('UPDATE linky_revision r
-LEFT JOIN linky base ON base.id=r.id
+  // BaseFieldDefinition::setInitialValueFromField() only works during a
+  // "regular" field install operation, not during entity schema migrations like
+  // we're doing here.
+  \Drupal::database()->query('UPDATE {linky_revision} r
+LEFT JOIN {linky} base ON base.id=r.id
 SET
 r.revision_created = r.changed,
 r.revision_uid = base.user_id');

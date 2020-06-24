@@ -2,8 +2,8 @@
 
 namespace Drupal\linky\Entity;
 
-use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\RevisionLogEntityTrait;
+use Drupal\Core\Entity\EntityMalformedException;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityChangedTrait;
@@ -13,7 +13,6 @@ use Drupal\link\LinkItemInterface;
 use Drupal\linky\LinkyInterface;
 use Drupal\linky\Url;
 use Drupal\user\EntityOwnerTrait;
-use Drupal\user\UserInterface;
 
 /**
  * Defines the Linky entity.
@@ -114,11 +113,11 @@ class Linky extends ContentEntityBase implements LinkyInterface {
     $fields['uuid']->setDescription(new TranslatableMarkup('The UUID of the Managed Link entity.'));
     $fields['revision_log']->setDisplayConfigurable('form', TRUE);
 
-
     $fields['user_id']->setLabel(new TranslatableMarkup('Authored by'))
       ->setDescription(new TranslatableMarkup('The user ID of author of the Managed Link entity.'))
       ->setRevisionable(TRUE)
       ->setSetting('handler', 'default')
+      ->setDefaultValueCallback(static::class . '::getDefaultEntityOwner')
       ->setDisplayOptions('view', [
         'label' => 'hidden',
         'type' => 'author',
@@ -186,7 +185,13 @@ class Linky extends ContentEntityBase implements LinkyInterface {
     $internalCanonical = parent::toUrl($rel, $options);
     if ($rel === 'canonical') {
       $options['linky_entity_canonical'] = $internalCanonical;
-      return Url::fromUri($this->link->uri, $options);
+      try {
+        return Url::fromUri($this->link->uri, $options);
+      }
+      catch (\InvalidArgumentException $exception) {
+        // Re-create exception as one that the interface allows.
+        throw new EntityMalformedException($exception->getMessage(), $exception->getCode(), $exception);
+      }
     }
     return $internalCanonical;
   }

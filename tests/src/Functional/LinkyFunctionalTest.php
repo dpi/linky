@@ -19,6 +19,13 @@ class LinkyFunctionalTest extends BrowserTestBase {
   protected $adminUser;
 
   /**
+   * A user that can only edit their own linkys.
+   *
+   * @var \Drupal\user\Entity\User
+   */
+  protected $linkyOwnEditor;
+
+  /**
    * {@inheritdoc}
    */
   public static $modules = [
@@ -45,6 +52,7 @@ class LinkyFunctionalTest extends BrowserTestBase {
     'administer entity_test content',
     'add linky entities',
     'edit linky entities',
+    'delete linky entities',
     'view linky entities',
   ];
 
@@ -55,6 +63,7 @@ class LinkyFunctionalTest extends BrowserTestBase {
     parent::setUp();
     // Test admin user.
     $this->adminUser = $this->drupalCreateUser($this->permissions);
+    $this->linkyOwnEditor = $this->drupalCreateUser(['edit own linky entities', 'delete own linky entities']);
   }
 
   /**
@@ -72,6 +81,46 @@ class LinkyFunctionalTest extends BrowserTestBase {
     ], 'Save');
     $this->assertSession()->statusCodeEquals(200);
     $this->assertSession()->linkByHrefExists($url);
+    $entity = $this->getMostRecentlyCreatedLinky();
+    $edit_url = $entity->toUrl('edit-form');
+    $delete_url = $entity->toUrl('delete-form');
+    $this->drupalGet($edit_url);
+    $this->assertSession()->statusCodeEquals(200);
+    $this->drupalGet($delete_url);
+    $this->assertSession()->statusCodeEquals(200);
+
+    // Test the edit & delete own permission.
+    $this->drupalLogin($this->linkyOwnEditor);
+    $this->drupalGet($edit_url);
+    $this->assertSession()->statusCodeEquals(403);
+    $this->drupalGet($delete_url);
+    $this->assertSession()->statusCodeEquals(403);
+    $entity->setOwner($this->linkyOwnEditor)->save();
+    $this->drupalGet($edit_url);
+    $this->assertSession()->statusCodeEquals(200);
+    $this->drupalGet($delete_url);
+    $this->assertSession()->statusCodeEquals(200);
+    // Test the admin user can edit & delete other user's linky entities.
+    $this->drupalLogin($this->adminUser);
+    $this->drupalGet($edit_url);
+    $this->assertSession()->statusCodeEquals(200);
+    $this->drupalGet($delete_url);
+    $this->assertSession()->statusCodeEquals(200);
+  }
+
+  /**
+   * Gets the most recently created linky entity.
+   *
+   * @return \Drupal\linky\LinkyInterface|NULL
+   *   The linky entity or NULL.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   */
+  protected function getMostRecentlyCreatedLinky() {
+    $results = \Drupal::entityQuery('linky')->sort('id', 'DESC')->range(0, 1)->execute();
+    $id = array_shift($results);
+    return \Drupal::entityTypeManager()->getStorage('linky')->load($id);
   }
 
 }
