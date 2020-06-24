@@ -1,7 +1,7 @@
 name: Linky (managed links)
 type: module
-description: Link management Drupal 8 style
-core: 8.x
+description: Link management Drupal 8 style. Also Drupal 9.
+core_version_requirement: ^8 || ^9
 package: Custom
 dependencies:
   - dynamic_entity_reference:dynamic_entity_reference

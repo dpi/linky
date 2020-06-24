@@ -117,6 +117,7 @@ class Linky extends ContentEntityBase implements LinkyInterface {
       ->setDescription(new TranslatableMarkup('The user ID of author of the Managed Link entity.'))
       ->setRevisionable(TRUE)
       ->setSetting('handler', 'default')
+      ->setDefaultValueCallback(static::class . '::getDefaultEntityOwner')
       ->setDisplayOptions('view', [
         'label' => 'hidden',
         'type' => 'author',
