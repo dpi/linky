@@ -4,6 +4,7 @@ namespace Drupal\linky;
 
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityChangedInterface;
+use Drupal\Core\Entity\RevisionLogInterface;
 use Drupal\user\EntityOwnerInterface;
 
 /**
@@ -11,7 +12,7 @@ use Drupal\user\EntityOwnerInterface;
  *
  * @ingroup linky
  */
-interface LinkyInterface extends ContentEntityInterface, EntityChangedInterface, EntityOwnerInterface {
+interface LinkyInterface extends ContentEntityInterface, EntityChangedInterface, EntityOwnerInterface, RevisionLogInterface {
 
   /**
    * Gets the Linky creation timestamp.
